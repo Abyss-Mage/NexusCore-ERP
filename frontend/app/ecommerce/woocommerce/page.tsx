@@ -146,14 +146,28 @@ export default function WooCommerceStorePage() {
         </div>
 
         <div className="flex gap-2.5">
-          <a
-            href={storeUrl ? (/^https?:\/\//i.test(storeUrl) ? storeUrl : `https://${storeUrl}`) : '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-secondary hover:bg-muted text-foreground font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-colors text-xs border border-border"
+          <button
+            type="button"
+            onClick={() => {
+              if (!storeUrl) return;
+              try {
+                const formatted = /^https?:\/\//i.test(storeUrl) ? storeUrl : `https://${storeUrl}`;
+                const parsed = new URL(formatted);
+                if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                  const a = document.createElement('a');
+                  a.href = parsed.href;
+                  a.target = '_blank';
+                  a.rel = 'noopener noreferrer';
+                  a.click();
+                }
+              } catch (e) {
+                console.error("Invalid store URL", e);
+              }
+            }}
+            className="bg-secondary hover:bg-muted text-foreground font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-colors text-xs border border-border cursor-pointer"
           >
             <Globe className="w-4 h-4 text-emerald-500" /> Visit Store <ArrowUpRight className="w-3.5 h-3.5" />
-          </a>
+          </button>
           <button
             onClick={fetchData}
             className="bg-primary hover:opacity-90 text-primary-foreground font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-all text-xs"

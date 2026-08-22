@@ -303,8 +303,20 @@ export default function CredentialVaultPage() {
                                             <button 
                                                 type="button"
                                                 onClick={() => {
-                                                    const clean = cred.url.replace(/^https?:\/\//i, '').trim();
-                                                    if (clean) window.open(`https://${encodeURIComponent(clean).replace(/%2F/g, '/')}`, '_blank', 'noopener,noreferrer');
+                                                    if (!cred.url) return;
+                                                    try {
+                                                        const formatted = /^https?:\/\//i.test(cred.url) ? cred.url : `https://${cred.url}`;
+                                                        const parsed = new URL(formatted);
+                                                        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                                                            const a = document.createElement('a');
+                                                            a.href = parsed.href;
+                                                            a.target = '_blank';
+                                                            a.rel = 'noopener noreferrer';
+                                                            a.click();
+                                                        }
+                                                    } catch (e) {
+                                                        console.error("Invalid URL", e);
+                                                    }
                                                 }}
                                                 className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 mt-1 truncate text-xs hover:underline text-left cursor-pointer"
                                             >
