@@ -61,59 +61,22 @@ func seedBusinessUnits() {
 		return
 	}
 
-	log.Println("🏢 Seeding default Business Units (TYTGEAR & Safehouse Studios)...")
+	log.Println("🏢 Initializing default primary business unit...")
 
-	tytWeb := "https://tytgear.com"
-	tytEmail := "support@tytgear.com"
-	shsWeb := "https://invoice.safehousestudios.tech"
-	shsEmail := "contact@safehousestudios.tech"
-
-	buTYT := models.BusinessUnit{
-		ID:              "tytgear",
-		Code:            "TYT",
-		Name:            "TYTGEAR",
-		Category:        "E-Commerce & 3D Hardware",
-		Description:     "Gaming Gear, Custom Mousepads, Tapestries, Posters, 3D Prints & Keyboards",
-		InvoicePrefix:   "TYT-INV-",
-		QuotationPrefix: "TYT-QT-",
-		ActiveModules:   models.JSONArray{"core", "3d", "ecommerce"},
+	defaultBU := models.BusinessUnit{
+		ID:              "primary",
+		Code:            "ORG",
+		Name:            "My Company",
+		Category:        "General Business",
+		Description:     "Primary workspace for invoicing, accounting and operations",
+		InvoicePrefix:   "INV-",
+		QuotationPrefix: "QT-",
+		ActiveModules:   models.JSONArray{"core", "3d", "software", "ecommerce"},
 		Currency:        "INR",
-		Website:         &tytWeb,
-		Email:           &tytEmail,
-		IsDefault:       false,
-		WooCommerceSettings: &models.JSONMap{
-			"store_url":            "https://tytgear.com",
-			"auto_create_invoices": true,
-			"auto_print_queue":     true,
-		},
-	}
-
-	buSHS := models.BusinessUnit{
-		ID:              "safehouse",
-		Code:            "SHS",
-		Name:            "Safehouse Studios",
-		Category:        "Software Development & IT Agency",
-		Description:     "Custom Web, Mobile & Cloud Engineering, Sprint Milestones, Retainers & Hosting",
-		InvoicePrefix:   "SHS-INV-",
-		QuotationPrefix: "SHS-QT-",
-		ActiveModules:   models.JSONArray{"core", "software"},
-		Currency:        "INR",
-		Website:         &shsWeb,
-		Email:           &shsEmail,
 		IsDefault:       true,
 	}
 
-	DB.Create(&buTYT)
-	DB.Create(&buSHS)
-
-	// Backfill any unassigned existing invoices, quotations, clients, and printers with safehouse or tytgear
-	defaultSHS := "safehouse"
-	defaultTYT := "tytgear"
-	DB.Model(&models.Invoice{}).Where("business_unit_id IS NULL OR business_unit_id = ''").Update("business_unit_id", defaultSHS)
-	DB.Model(&models.Quotation{}).Where("business_unit_id IS NULL OR business_unit_id = ''").Update("business_unit_id", defaultSHS)
-	DB.Model(&models.Client{}).Where("business_unit_id IS NULL OR business_unit_id = ''").Update("business_unit_id", defaultSHS)
-	DB.Model(&models.Printer{}).Where("business_unit_id IS NULL OR business_unit_id = ''").Update("business_unit_id", defaultTYT)
-	DB.Model(&models.PrintJob{}).Where("business_unit_id IS NULL OR business_unit_id = ''").Update("business_unit_id", defaultTYT)
+	DB.Create(&defaultBU)
 }
 
 func seedIndianStates() {
