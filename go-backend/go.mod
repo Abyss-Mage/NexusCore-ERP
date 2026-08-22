@@ -1,6 +1,6 @@
 module github.com/anirban-guha/invoicecore
 
-go 1.23
+go 1.24
 
 require (
 	github.com/chromedp/cdproto v0.0.0-20260804232424-e85f50dbfd32

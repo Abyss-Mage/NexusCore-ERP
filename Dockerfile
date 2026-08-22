@@ -13,7 +13,7 @@ RUN npm run build
 # =============================================================================
 # Stage 2: Compile the Go binary
 # =============================================================================
-FROM golang:1.23-alpine AS go-builder
+FROM golang:1.24-alpine AS go-builder
 WORKDIR /app/go-backend
 
 COPY go-backend/go.mod go-backend/go.sum ./
