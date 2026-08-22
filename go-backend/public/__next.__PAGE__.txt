@@ -1,0 +1,18 @@
+1:"$Sreact.fragment"
+2:I[61304,[],"ClientPageRoot"]
+3:I[97290,["9551","static/chunks/9551-741283e624225f0b.js","5042","static/chunks/5042-87509abd46e423f2.js","5425","static/chunks/5425-78af3e85dc68c740.js","9672","static/chunks/9672-5d7a5a678fadcbc9.js","9854","static/chunks/9854-56193332c77a4c00.js","5061","static/chunks/5061-1d684fdc6f9d7968.js","2110","static/chunks/2110-cd96f893f151dc2a.js","6606","static/chunks/6606-17a7484e59cb1908.js","8974","static/chunks/app/page-3a3047b2c2262363.js"],"default"]
+6:I[90484,[],"OutletBoundary"]
+7:"$Sreact.suspense"
+b:I[90484,[],"ViewportBoundary"]
+c:I[90484,[],"MetadataBoundary"]
+a:X
+0:{"buildId":"LA7RZkKFwCtgkMBGTxh-Q","data":[{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],null,["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"isPartial":"$@9","staleTime":"$a","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$Lb",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$Lc",null,{"children":["$","$7",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"InvoiceCore"}],["$","meta","1",{"name":"description","content":"Enterprise ERP & Invoicing Platform"}]]}]}]}],null]}],"isPartial":"$@d","staleTime":"$a","varyParams":null}],"isUpgradeableISRFallback":false,"a":"$@e","rootVaryParams":null,"needsRuntimeRequest":"$@f"}
+4:{}
+5:"$0:data:0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null
+f:true
+a:300
+a:C
+e:0
+d:"$undefined"
+9:"$undefined"
