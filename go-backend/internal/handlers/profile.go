@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/anirban-guha/invoicecore/internal/database"
@@ -265,7 +266,7 @@ func UploadFile(c *gin.Context) {
 		return
 	}
 
-	ext := filepath.Ext(file.Filename)
+	ext := filepath.Ext(filepath.Base(file.Filename))
 	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
 
 	// Use MinIO if connected, otherwise fall back to local filesystem
@@ -286,20 +287,26 @@ func UploadFile(c *gin.Context) {
 		return
 	}
 
-	// Fallback: local filesystem
-	uploadDir := filepath.Join("..", "frontend", "public", "uploads")
+	// Fallback: local filesystem with path traversal protection
+	uploadDir := filepath.Clean(filepath.Join(".", "public", "uploads"))
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create upload directory"})
 		return
 	}
 
-	dst := filepath.Join(uploadDir, filename)
+	safeName := filepath.Base(filename)
+	dst := filepath.Join(uploadDir, safeName)
+	if !strings.HasPrefix(filepath.Clean(dst), uploadDir) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file path"})
+		return
+	}
+
 	if err := c.SaveUploadedFile(file, dst); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"filePath": "/uploads/" + filename})
+	c.JSON(http.StatusOK, gin.H{"filePath": "/uploads/" + safeName})
 }
 
 // ---- Mail Config & Templates ----
@@ -426,7 +433,8 @@ func SendInvoiceEmail(c *gin.Context) {
 		return
 	}
 
-	tempPath := "./" + file.Filename
+	safeBaseName := filepath.Base(file.Filename)
+	tempPath := filepath.Join(os.TempDir(), fmt.Sprintf("inv_%d_%s", time.Now().UnixNano(), safeBaseName))
 	if err := c.SaveUploadedFile(file, tempPath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save temp file"})
 		return
@@ -483,7 +491,8 @@ func SendQuotationEmail(c *gin.Context) {
 		return
 	}
 
-	tempPath := "./" + file.Filename
+	safeBaseName := filepath.Base(file.Filename)
+	tempPath := filepath.Join(os.TempDir(), fmt.Sprintf("qt_%d_%s", time.Now().UnixNano(), safeBaseName))
 	if err := c.SaveUploadedFile(file, tempPath); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save temp file"})
 		return

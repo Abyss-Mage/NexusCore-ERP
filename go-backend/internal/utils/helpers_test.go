@@ -6,7 +6,10 @@ import (
 )
 
 func TestHashAndCheckPassword(t *testing.T) {
-	password := "SecurePass123!"
+	password, err := GenerateRandomHex(16)
+	if err != nil {
+		t.Fatalf("Failed to generate test password: %v", err)
+	}
 
 	hash, err := HashPassword(password)
 	if err != nil {
@@ -21,7 +24,8 @@ func TestHashAndCheckPassword(t *testing.T) {
 		t.Error("CheckPassword should return true for correct password")
 	}
 
-	if CheckPassword("WrongPassword", hash) {
+	wrongPassword, _ := GenerateRandomHex(16)
+	if CheckPassword(wrongPassword, hash) {
 		t.Error("CheckPassword should return false for incorrect password")
 	}
 }

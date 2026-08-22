@@ -61,8 +61,13 @@ func Connect() error {
 		log.Printf("🔌 Connecting to SQLite database at %s", dbPath)
 	}
 
+	logLevel := logger.Info
+	if os.Getenv("ENVIRONMENT") == "production" || os.Getenv("GIN_MODE") == "release" {
+		logLevel = logger.Warn
+	}
+
 	db, err := gorm.Open(dialector, &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logLevel),
 	})
 	if err != nil {
 		DB = nil

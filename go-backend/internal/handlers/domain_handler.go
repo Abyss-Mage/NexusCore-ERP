@@ -224,7 +224,7 @@ func GenerateDomainRenewalInvoice(c *gin.Context) {
 func checkDomainHealth(domainID int, domainName string) {
 	dialer := &net.Dialer{Timeout: 5 * time.Second}
 	conf := &tls.Config{
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: false,
 		ServerName:         domainName,
 	}
 

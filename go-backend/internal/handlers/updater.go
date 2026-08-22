@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -82,9 +83,29 @@ func PerformUpdate(c *gin.Context) {
 		return
 	}
 
-	tempPath := filepath.Join(os.TempDir(), "InvoiceCore-Update.exe")
+	parsedURL, err := url.Parse(req.DownloadURL)
+	if err != nil || parsedURL.Scheme != "https" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or non-HTTPS download URL"})
+		return
+	}
+
+	allowedHosts := []string{"github.com", "api.github.com", "objects.githubusercontent.com", "safehousestudios.tech"}
+	isAllowed := false
+	for _, h := range allowedHosts {
+		if parsedURL.Hostname() == h || strings.HasSuffix(parsedURL.Hostname(), "."+h) {
+			isAllowed = true
+			break
+		}
+	}
+	if !isAllowed {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Untrusted update source domain"})
+		return
+	}
+
+	tempPath := filepath.Join(os.TempDir(), "NexusCore-Update.exe")
 	
-	resp, err := http.Get(req.DownloadURL)
+	client := &http.Client{Timeout: 60 * time.Second}
+	resp, err := client.Get(req.DownloadURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to download update"})
 		return

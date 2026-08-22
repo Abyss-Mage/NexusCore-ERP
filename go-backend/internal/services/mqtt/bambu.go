@@ -107,9 +107,9 @@ func ConnectPrinter(p models.Printer) {
 	opts.SetUsername(username)
 	opts.SetPassword(password)
 
-	// Bambu printers & Cloud brokers use TLS
+	// Strict TLS for Bambu Cloud broker, self-signed bypass only for local LAN printer hardware
 	tlsConfig := &tls.Config{
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: !isCloud,
 	}
 	opts.SetTLSConfig(tlsConfig)
 

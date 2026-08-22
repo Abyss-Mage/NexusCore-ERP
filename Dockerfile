@@ -26,8 +26,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/bin/nexus-server 
 # =============================================================================
 # Stage 3: Minimal, ultra-secure production runtime container
 # =============================================================================
-FROM alpine:3.20
-RUN apk add --no-cache ca-certificates tzdata wget curl
+FROM alpine:3.21
+RUN apk update && apk upgrade --no-cache && apk add --no-cache ca-certificates tzdata wget curl
 
 WORKDIR /app
 

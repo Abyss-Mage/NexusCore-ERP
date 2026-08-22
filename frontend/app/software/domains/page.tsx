@@ -316,9 +316,9 @@ export default function DomainsMonitorPage() {
                         </div>
                         <div>
                           <a 
-                            href={`https://${d.domain_name}`} 
+                            href={`https://${encodeURIComponent(d.domain_name.trim().replace(/^https?:\/\//i, ''))}`} 
                             target="_blank" 
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                             className="font-bold text-foreground hover:text-primary transition-colors flex items-center gap-1 text-sm"
                           >
                             {d.domain_name}

@@ -161,10 +161,12 @@ export default function LedgerPage() {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `ledger-${timeRange}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+        const safeRange = encodeURIComponent(timeRange.replace(/[^a-zA-Z0-9_-]/g, ''));
+        link.setAttribute('download', `ledger-${safeRange}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
         document.body.appendChild(link);
         link.click();
         link.remove();
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (e) {
         console.error(e);
         toast("Failed to export PDF", "error");
