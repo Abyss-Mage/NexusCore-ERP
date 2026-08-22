@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/anirban-guha/invoicecore/internal/database"
 	"github.com/anirban-guha/invoicecore/internal/dto"
@@ -82,8 +83,63 @@ func SetupHandler(c *gin.Context) {
 		return
 	}
 
+	// Create initial company / business unit from user setup inputs
+	companyName := req.CompanyName
+	if companyName == "" {
+		companyName = "Primary Workspace"
+	}
+	companyCode := req.CompanyCode
+	if companyCode == "" {
+		companyCode = strings.ToUpper(strings.ReplaceAll(companyName, " ", ""))
+		if len(companyCode) > 4 {
+			companyCode = companyCode[:4]
+		}
+	}
+	if companyCode == "" {
+		companyCode = "ORG"
+	}
+	currency := req.Currency
+	if currency == "" {
+		currency = "INR"
+	}
+	category := req.Industry
+	if category == "" {
+		category = "General Business"
+	}
+	modules := models.JSONArray{"core", "3d", "software", "ecommerce"}
+	if len(req.Modules) > 0 {
+		modules = models.JSONArray{}
+		for _, m := range req.Modules {
+			modules = append(modules, m)
+		}
+	}
+
+	buID := strings.ToLower(companyCode)
+	var taxIDPtr *string
+	if req.TaxID != "" {
+		taxIDPtr = &req.TaxID
+	}
+
+	primaryBU := models.BusinessUnit{
+		ID:              buID,
+		Code:            companyCode,
+		Name:            companyName,
+		Category:        category,
+		Description:     fmt.Sprintf("Primary workspace for %s", companyName),
+		InvoicePrefix:   fmt.Sprintf("%s-INV-", companyCode),
+		QuotationPrefix: fmt.Sprintf("%s-QT-", companyCode),
+		ActiveModules:   modules,
+		Currency:        currency,
+		TaxID:           taxIDPtr,
+		IsDefault:       true,
+	}
+
+	// Delete any previous default and create user's customized company
+	database.DB.Where("is_default = ? OR id = ?", true, buID).Delete(&models.BusinessUnit{})
+	database.DB.Create(&primaryBU)
+
 	// Create default settings
-	softwareName := "InvoiceCore"
+	softwareName := "NexusCore ERP"
 	database.DB.Create(&models.SystemSetting{Key: "SOFTWARE_NAME", Value: &softwareName})
 
 	token, err := utils.GenerateJWT(user.ID, user.Email, user.Role)

@@ -5,14 +5,20 @@ import "time"
 // ---- Auth DTOs ----
 
 type SetupRequest struct {
-	DBHost     string `json:"db_host" binding:"required"`
-	DBPort     string `json:"db_port" binding:"required"`
-	DBUser     string `json:"db_user" binding:"required"`
-	DBPassword string `json:"db_password"`
-	DBName     string `json:"db_name" binding:"required"`
-	Email      string `json:"email" binding:"required,email"`
-	Password   string `json:"password" binding:"required,min=8"`
-	ChromePath string `json:"chrome_path"`
+	DBHost      string   `json:"db_host" binding:"required"`
+	DBPort      string   `json:"db_port" binding:"required"`
+	DBUser      string   `json:"db_user" binding:"required"`
+	DBPassword  string   `json:"db_password"`
+	DBName      string   `json:"db_name" binding:"required"`
+	Email       string   `json:"email" binding:"required,email"`
+	Password    string   `json:"password" binding:"required,min=8"`
+	ChromePath  string   `json:"chrome_path"`
+	CompanyName string   `json:"company_name"`
+	CompanyCode string   `json:"company_code"`
+	Industry    string   `json:"industry"`
+	Currency    string   `json:"currency"`
+	TaxID       string   `json:"tax_id"`
+	Modules     []string `json:"modules"`
 }
 
 type LoginRequest struct {
