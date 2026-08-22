@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,44 +72,55 @@ func CheckUpdate(c *gin.Context) {
 	})
 }
 
-// PerformUpdate downloads the installer and executes it.
+// PerformUpdate downloads the installer from the verified official repository and executes it.
 func PerformUpdate(c *gin.Context) {
-	var req struct {
-		DownloadURL string `json:"download_url"`
+	// Fetch verified latest release info directly from GitHub API server-side
+	resp, err := http.Get("https://api.github.com/repos/SafeHouseStudios/InvoiceCore/releases/latest")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check update source"})
+		return
 	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch official release info"})
 		return
 	}
 
-	parsedURL, err := url.Parse(req.DownloadURL)
-	if err != nil || parsedURL.Scheme != "https" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or non-HTTPS download URL"})
+	var release struct {
+		Assets []struct {
+			Name               string `json:"name"`
+			BrowserDownloadURL string `json:"browser_download_url"`
+		} `json:"assets"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse release info"})
 		return
 	}
 
-	allowedHosts := []string{"github.com", "api.github.com", "objects.githubusercontent.com", "safehousestudios.tech"}
-	isAllowed := false
-	for _, h := range allowedHosts {
-		if parsedURL.Hostname() == h || strings.HasSuffix(parsedURL.Hostname(), "."+h) {
-			isAllowed = true
+	var verifiedDownloadURL string
+	for _, asset := range release.Assets {
+		if strings.HasSuffix(asset.Name, ".exe") && strings.HasPrefix(asset.BrowserDownloadURL, "https://github.com/") {
+			verifiedDownloadURL = asset.BrowserDownloadURL
 			break
 		}
 	}
-	if !isAllowed {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Untrusted update source domain"})
+
+	if verifiedDownloadURL == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No verified installer found in latest release"})
 		return
 	}
 
 	tempPath := filepath.Join(os.TempDir(), "NexusCore-Update.exe")
 	
 	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Get(req.DownloadURL)
+	downloadResp, err := client.Get(verifiedDownloadURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to download update"})
 		return
 	}
-	defer resp.Body.Close()
+	defer downloadResp.Body.Close()
 
 	out, err := os.Create(tempPath)
 	if err != nil {

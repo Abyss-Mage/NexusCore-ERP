@@ -161,11 +161,8 @@ export default function LedgerPage() {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        const safeRange = encodeURIComponent(timeRange.replace(/[^a-zA-Z0-9_-]/g, ''));
-        link.setAttribute('download', `ledger-${safeRange}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+        link.download = `ledger-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+        link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
         setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (e) {
         console.error(e);

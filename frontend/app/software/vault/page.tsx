@@ -300,15 +300,17 @@ export default function CredentialVaultPage() {
                                             {cred.service_name}
                                         </h3>
                                         {cred.url && (
-                                            <a 
-                                                href={/^https?:\/\//i.test(cred.url) ? cred.url : `https://${cred.url}`} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer" 
-                                                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 mt-1 truncate text-xs hover:underline"
+                                            <button 
+                                                type="button"
+                                                onClick={() => {
+                                                    const clean = cred.url.replace(/^https?:\/\//i, '').trim();
+                                                    if (clean) window.open(`https://${encodeURIComponent(clean).replace(/%2F/g, '/')}`, '_blank', 'noopener,noreferrer');
+                                                }}
+                                                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 mt-1 truncate text-xs hover:underline text-left cursor-pointer"
                                             >
-                                                {cred.url}
-                                                <ExternalLink className="h-3 w-3" />
-                                            </a>
+                                                <span>{cred.url}</span>
+                                                <ExternalLink className="h-3 w-3 shrink-0" />
+                                            </button>
                                         )}
                                     </div>
                                     <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">

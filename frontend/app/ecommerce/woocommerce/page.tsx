@@ -146,17 +146,14 @@ export default function WooCommerceStorePage() {
         </div>
 
         <div className="flex gap-2.5">
-          <button
-            onClick={() => {
-              if (storeUrl) {
-                const safeUrl = /^https?:\/\//i.test(storeUrl) ? storeUrl : `https://${storeUrl}`;
-                window.open(safeUrl, '_blank', 'noopener,noreferrer');
-              }
-            }}
+          <a
+            href={storeUrl ? (/^https?:\/\//i.test(storeUrl) ? storeUrl : `https://${storeUrl}`) : '#'}
+            target="_blank"
+            rel="noopener noreferrer"
             className="bg-secondary hover:bg-muted text-foreground font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-colors text-xs border border-border"
           >
             <Globe className="w-4 h-4 text-emerald-500" /> Visit Store <ArrowUpRight className="w-3.5 h-3.5" />
-          </button>
+          </a>
           <button
             onClick={fetchData}
             className="bg-primary hover:opacity-90 text-primary-foreground font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-all text-xs"
