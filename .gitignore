@@ -49,11 +49,11 @@ __debug_bin*
 *.db-shm
 *.sqlite
 *.sqlite3
-data/
-storage/
-uploads/
-app/data/
-postgres_data/
+/data/
+/storage/
+/uploads/
+/app/data/
+/postgres_data/
 
 # OS Specific
 .DS_Store
