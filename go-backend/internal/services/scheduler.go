@@ -222,6 +222,22 @@ func processSSLExpiryChecks() {
 
 		database.DB.Model(&d).Updates(updates)
 
+		// Dispatch Push & Webhook Alert for SSL expiring in <= 14 days
+		if daysLeft <= 14 {
+			DispatchAlert(AlertPayload{
+				Type:      AlertEventSSLExpiring,
+				Title:     fmt.Sprintf("🔒 SSL Expiry Warning: %s", d.DomainName),
+				Message:   fmt.Sprintf("SSL certificate / domain registration for %s expires in %d days! Action required immediately.", d.DomainName, daysLeft),
+				Severity:  "WARNING",
+				Timestamp: now,
+				Details: map[string]interface{}{
+					"domain_name":    d.DomainName,
+					"days_remaining": daysLeft,
+					"ssl_status":     d.SSLStatus,
+				},
+			})
+		}
+
 		// Proactive Renewal Invoice & Notification (30 days prior)
 		if daysLeft <= 30 && d.AutoRenew {
 			// Check if we already created an invoice in the last 30 days

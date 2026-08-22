@@ -313,13 +313,16 @@ func RegisterRoutes(r *gin.Engine) {
 		api.GET("/activities", ListActivities)
 		api.GET("/activity", ListActivities)
 
-		// Notifications
+		// Notifications & Push/Webhook Engine
 		notifications := api.Group("/notifications")
 		{
 			notifications.GET("", ListNotifications)
 			notifications.PATCH("/read-all", MarkAllNotificationsRead)
 			notifications.PATCH("/:id/read", MarkNotificationRead)
 			notifications.DELETE("/:id", DeleteNotification)
+			notifications.GET("/config", middleware.Authorize("SUDO_ADMIN", "ADMIN"), GetNotificationSettingsHandler)
+			notifications.POST("/config", middleware.Authorize("SUDO_ADMIN", "ADMIN"), SaveNotificationSettingsHandler)
+			notifications.POST("/test", middleware.Authorize("SUDO_ADMIN", "ADMIN"), SendTestAlertHandler)
 		}
 
 		// Utilities — support both /states and /utils/states (frontend uses /utils/*)

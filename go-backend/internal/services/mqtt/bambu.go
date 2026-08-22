@@ -20,9 +20,13 @@ type BambuClient struct {
 	Printer models.Printer
 }
 
+// AlertDispatcherFunc represents an alert dispatch callback
+type AlertDispatcherFunc func(eventType string, title string, message string, severity string, details map[string]interface{})
+
 var (
 	activeClients   = make(map[int]*BambuClient)
 	activeClientsMu sync.RWMutex
+	OnAlert         AlertDispatcherFunc
 )
 
 // InitBambuClients fetches all active printers from DB and initiates MQTT connections
@@ -232,8 +236,41 @@ func handleBambuMessage(serialNumber string, payloadBytes []byte) {
 			status = "Active"
 			updates["progress"] = 100
 			log.Printf("[Bambu MQTT] Printer %s completed print job!", serialNumber)
+			if OnAlert != nil {
+				jobName := "3D Print Model"
+				if j, ok := updates["current_job"].(string); ok && j != "" {
+					jobName = j
+				}
+				OnAlert("BAMBU_PRINT_FINISHED",
+					fmt.Sprintf("🚨 Bambu 3D Print Finished (%s)", serialNumber),
+					fmt.Sprintf("Printer successfully finished printing '%s' at 100%% completion.", jobName),
+					"SUCCESS",
+					map[string]interface{}{
+						"serial_number": serialNumber,
+						"job_name":      jobName,
+						"progress":      "100%",
+					},
+				)
+			}
 		case "FAILED":
 			status = "Error"
+			log.Printf("[Bambu MQTT] Printer %s print job failed!", serialNumber)
+			if OnAlert != nil {
+				jobName := "3D Print Model"
+				if j, ok := updates["current_job"].(string); ok && j != "" {
+					jobName = j
+				}
+				OnAlert("BAMBU_NOZZLE_CLOGGED",
+					fmt.Sprintf("🚨 Bambu Alert: Print Failed / Clog (%s)", serialNumber),
+					fmt.Sprintf("Printer failed during '%s'. Potential nozzle clog, layer shift, or filament error.", jobName),
+					"CRITICAL",
+					map[string]interface{}{
+						"serial_number": serialNumber,
+						"job_name":      jobName,
+						"gcode_state":   gcodeState,
+					},
+				)
+			}
 		case "IDLE":
 			status = "Active"
 		default:

@@ -291,10 +291,29 @@ func UpdateInvoiceStatus(c *gin.Context) {
 		return
 	}
 
-	database.DB.First(&invoice, id)
+	database.DB.Preload("Client").First(&invoice, id)
 	_ = services.PostInvoiceJournalEntry(&invoice)
 	if req.Status == "PAID" {
 		_ = services.PostInvoicePaymentJournalEntry(&invoice)
+
+		clientName := "Client"
+		if invoice.Client.CompanyName != "" {
+			clientName = invoice.Client.CompanyName
+		}
+
+		services.DispatchAlert(services.AlertPayload{
+			Type:      services.AlertEventInvoicePaid,
+			Title:     fmt.Sprintf("💰 Invoice Paid: #%s", invoice.InvoiceNumber),
+			Message:   fmt.Sprintf("Client %s has paid Invoice #%s for %s %.2f!", clientName, invoice.InvoiceNumber, invoice.Currency, invoice.GrandTotal),
+			Severity:  "SUCCESS",
+			Timestamp: time.Now(),
+			Details: map[string]interface{}{
+				"invoice_number": invoice.InvoiceNumber,
+				"client_name":    clientName,
+				"amount":         fmt.Sprintf("%s %.2f", invoice.Currency, invoice.GrandTotal),
+				"status":         "PAID",
+			},
+		})
 	}
 
 	if userID, ok := getContextUserID(c); ok {

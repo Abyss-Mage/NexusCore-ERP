@@ -78,13 +78,29 @@ func applyPayment(invoice *models.Invoice, amount float64, gateway, paymentID st
 	entityID := strconv.Itoa(invoice.ID)
 	services.LogActivity(1, "PAYMENT_RECONCILED", desc, &entityType, &entityID, nil)
 
-	// Create Notification
-	notifMsg := fmt.Sprintf("Invoice #%s was paid via %s (Txn: %s)", invoice.InvoiceNumber, gateway, paymentID)
-	database.DB.Create(&models.Notification{
-		UserID:  1,
-		Title:   fmt.Sprintf("Payment Received: %s #%s", gateway, invoice.InvoiceNumber),
-		Message: &notifMsg,
-		Type:    "SUCCESS",
+	// Post to double-entry ledger
+	_ = services.PostInvoicePaymentJournalEntry(invoice)
+
+	// Dispatch Push / Webhook Alert
+	clientName := "Valued Client"
+	if invoice.Client.CompanyName != "" {
+		clientName = invoice.Client.CompanyName
+	}
+
+	services.DispatchAlert(services.AlertPayload{
+		Type:      services.AlertEventInvoicePaid,
+		Title:     fmt.Sprintf("💰 Invoice Paid via %s: #%s", gateway, invoice.InvoiceNumber),
+		Message:   fmt.Sprintf("%s has settled Invoice #%s for %s %.2f via %s!", clientName, invoice.InvoiceNumber, invoice.Currency, amount, gateway),
+		Severity:  "SUCCESS",
+		Timestamp: now,
+		Details: map[string]interface{}{
+			"invoice_number": invoice.InvoiceNumber,
+			"client_name":    clientName,
+			"amount":         fmt.Sprintf("%s %.2f", invoice.Currency, amount),
+			"gateway":        gateway,
+			"transaction_id": paymentID,
+			"status":         "PAID",
+		},
 	})
 
 	log.Printf("💳 [Payment Reconciliation] Invoice %s marked as PAID via %s", invoice.InvoiceNumber, gateway)
