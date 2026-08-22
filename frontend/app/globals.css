@@ -1,0 +1,309 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* --- HORIZON LIGHT THEME --- */
+    --background: 210 33% 96%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 154.5 69.1% 58.7%;
+    --primary-foreground: 155 100% 11%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 8% 46%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 251 100% 55%;
+    --radius: 1rem;
+  }
+
+  /* --- DARK THEME (Midnight Black) --- */
+  .dark {
+    --background: 0 0% 0%;       /* Pure Black */
+    --foreground: 0 0% 100%;     /* Pure White */
+    
+    /* Card Base */
+    --card: 0 0% 3%;             /* Slightly lighter than pure black for separation */
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
+    
+    /* CRITICAL: Primary = White, Text = Black */
+    --primary: 0 0% 100%;        
+    --primary-foreground: 0 0% 0%; 
+    
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Lighter muted for better readability on black */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 70%; 
+    
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 20%;          
+    --input: 0 0% 20%;
+    --ring: 0 0% 80%; /* Softer ring */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground transition-colors duration-500 ease-in-out relative;
+    background-color: hsl(var(--background)); 
+    overflow-x: hidden;
+    color-scheme: dark;
+  }
+
+  /* Orbs Code (Hidden in Midnight) */
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    width: 40vw;
+    height: 40vw;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: -1;
+    animation: float 20s infinite alternate ease-in-out;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  body::before {
+    top: -10%;
+    left: -10%;
+    background: radial-gradient(circle, hsla(var(--primary)), transparent 70%);
+  }
+  body::after {
+    bottom: -10%;
+    right: -10%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent 70%);
+    animation-delay: -10s;
+  }
+
+  .dark body::before { opacity: 0.2; }
+  .dark body::after { opacity: 0.15; }
+
+  /* HIDE Orbs in Dark Mode */
+  .dark body::before,
+  .dark body::after {
+      display: none !important;
+  }
+
+  /* --- GLASSMORPHISM OVERRIDES --- */
+  .dark .bg-card,
+  .dark [data-slot="card"],
+  .dark aside {
+      background-color: rgba(0, 0, 0, 0.4) !important;
+      backdrop-filter: blur(20px) saturate(0%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .dark aside {
+      background-color: rgba(0, 0, 0, 0.6) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+  
+  .dark header {
+      background-color: rgba(0, 0, 0, 0.6) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* Light mode versions for aside and header */
+  aside {
+      background-color: rgba(255, 255, 255, 0.7) !important;
+      backdrop-filter: blur(20px) !important;
+      border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
+  }
+
+  header {
+      background-color: rgba(255, 255, 255, 0.7) !important;
+      backdrop-filter: blur(20px) !important;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  }
+}
+
+@layer components {
+  /* FIX: Use standard CSS for background to avoid circular @apply reference */
+  .bg-popover {
+    background-color: hsl(var(--popover) / 0.95);
+    @apply backdrop-blur-md border border-border shadow-2xl;
+  }
+  
+  /* Duplicate wrapper style just to be safe */
+  [data-radix-popper-content-wrapper] {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .rdp {
+    @apply bg-card rounded-xl shadow-xl p-4 border border-border m-0;
+  }
+  
+  .rdp-day_selected {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground;
+  }
+  
+  .config-option-active {
+    @apply ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* FIX: Use standard foreground variable so it adapts to black/white */
+  .text-popover-foreground {
+    @apply text-foreground;
+  }
+
+  .input-dark {
+    @apply flex h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm ring-offset-background transition-colors shadow-sm;
+  }
+  .input-dark::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+  .input-dark:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+  }
+  .input-dark:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/60 dark:bg-card/60 backdrop-blur-xl border border-white/40 dark:border-white/5 shadow-lg;
+  }
+
+  .glass-panel {
+    @apply rounded-xl;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.03);
+  }
+  .glass-panel:hover {
+    border-color: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+  }
+
+  .dark .glass-panel {
+    @apply rounded-xl;
+    background-color: rgba(24, 24, 27, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+  }
+  .dark .glass-panel:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+  }
+  
+  .solid-card {
+    @apply bg-card border border-border shadow-sm rounded-xl;
+  }
+
+  .shadow-horizon {
+    box-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
+  }
+  .dark .shadow-horizon {
+    box-shadow: none; 
+  }
+
+  @keyframes float {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(5%, 10%) scale(1.1); }
+    100% { transform: translate(-5%, 5%) scale(1); }
+  }
+  
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 8s linear infinite;
+  }
+
+  .animate-float {
+    animation-name: float;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent; 
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400 dark:bg-slate-600;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all;
+    @apply h-9 px-4 py-2 cursor-pointer;
+    @apply bg-gradient-to-b from-primary/90 to-primary text-primary-foreground shadow-md shadow-primary/20 border border-primary/20;
+  }
+  
+  .btn-primary:hover {
+    @apply shadow-lg shadow-primary/40 -translate-y-0.5 from-primary to-primary;
+  }
+
+  .btn-primary:active {
+    @apply scale-[0.98];
+  }
+
+  .progress-bar-fill {
+      background: linear-gradient(90deg, #10b981 0%, #4edea3 100%);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(24, 24, 27, 0.3); 
+      border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1); 
+      border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2); 
+  }
+}

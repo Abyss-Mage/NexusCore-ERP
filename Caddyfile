@@ -1,0 +1,37 @@
+# =============================================================================
+# Caddy Configuration for InvoiceCore Deployment
+# =============================================================================
+# Replace {$DOMAIN} with your base domain (or set DOMAIN in Caddy's env)
+# =============================================================================
+
+{
+    email admin@{$DOMAIN}
+    admin off
+}
+
+# 1. InvoiceCore Main App & API
+invoice.safehousestudios.tech {
+    encode zstd gzip
+    reverse_proxy core-backend:5000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# 2. Gitea Git DevOps Server (Optional)
+git.invoice.safehousestudios.tech {
+    encode zstd gzip
+    reverse_proxy devops-gitea:3000
+}
+
+# 3. Uptime Kuma Status Page (Optional)
+status.invoice.safehousestudios.tech {
+    encode zstd gzip
+    reverse_proxy mon-uptime-kuma:3001 {
+        header_up Upgrade {>Upgrade}
+        header_up Connection {>Connection}
+    }
+}
+

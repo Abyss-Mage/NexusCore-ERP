@@ -1,0 +1,84 @@
+# =============================================================================
+# NexusCore ERP • Git Ignore Policy
+# =============================================================================
+
+# Environment Variables & Secrets (CRITICAL)
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+*.pem
+*.key
+*.cert
+*.crt
+
+# Node.js / Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+
+# Go / Backend Compiled Binaries
+go-backend/bin/
+go-backend/tools/
+tools/
+*license-gen*
+*minter*
+go-backend/nexus-server
+go-backend/invoice-server
+go-backend/migrate
+go-backend/invoice-seed
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+__debug_bin*
+
+# Local SQLite & Runtime Databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+data/
+storage/
+uploads/
+app/data/
+postgres_data/
+
+# OS Specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# IDE & Editor Configs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary & Log Files
+*.log
+logs/
+temp/
+tmp/
+.temp/
