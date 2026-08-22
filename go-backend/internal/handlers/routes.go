@@ -235,6 +235,26 @@ func RegisterRoutes(r *gin.Engine) {
 			reports.GET("/gst", GetGSTSummaryReport)
 			reports.GET("/gst/export-csv", ExportGSTCSV)
 			reports.GET("/gst/export-json", ExportGSTJSON)
+			reports.GET("/gst/export-govt-json", ExportGSTR1GovtJSON)
+		}
+
+		// Double-Entry Financial Statements & Accounting
+		financials := api.Group("/financials")
+		financials.Use(middleware.Authorize("SUDO_ADMIN", "ADMIN", "ACCOUNTANT"))
+		{
+			financials.GET("/profit-loss", GetProfitAndLoss)
+			financials.GET("/balance-sheet", GetBalanceSheet)
+			financials.GET("/trial-balance", GetTrialBalance)
+			financials.GET("/accounts", GetAccountsList)
+			financials.POST("/rebuild-journals", middleware.Authorize("SUDO_ADMIN"), RebuildJournalsHandler)
+		}
+
+		// Live Multi-Currency FX Rates
+		fx := api.Group("/fx")
+		{
+			fx.GET("/rates", GetFXRates)
+			fx.POST("/sync", middleware.Authorize("SUDO_ADMIN", "ADMIN", "ACCOUNTANT"), SyncFXRatesHandler)
+			fx.POST("/override", middleware.Authorize("SUDO_ADMIN", "ADMIN"), OverrideFXRateHandler)
 		}
 
 		// Dashboard

@@ -35,6 +35,8 @@ func Start() {
 		}
 		database.SeedIfNeeded()
 		processSeedFile()
+		services.SeedChartOfAccounts()
+		services.StartFXBackgroundSync()
 		services.StartActivityPruning()
 		services.StartScheduler()
 		services.StartUptimeRobot()

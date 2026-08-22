@@ -71,6 +71,7 @@ func CreateExpense(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create expense"})
 		return
 	}
+	_ = services.PostExpenseJournalEntry(&expense, nil)
 	c.JSON(http.StatusCreated, expense)
 }
 
@@ -95,6 +96,9 @@ func UpdateExpense(c *gin.Context) {
 		Date:        req.Date,
 		Description: req.Description,
 	})
+
+	database.DB.First(&expense, id)
+	_ = services.PostExpenseJournalEntry(&expense, nil)
 
 	c.JSON(http.StatusOK, expense)
 }

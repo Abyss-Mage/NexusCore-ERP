@@ -180,6 +180,7 @@ func CreateInvoice(c *gin.Context) {
 	}
 
 	database.DB.Preload("Client").Preload("BankAccount").First(&invoice, invoice.ID)
+	_ = services.PostInvoiceJournalEntry(&invoice)
 	c.JSON(http.StatusCreated, invoice)
 }
 
@@ -249,6 +250,7 @@ func UpdateInvoice(c *gin.Context) {
 	}
 
 	database.DB.Preload("Client").Preload("BankAccount").First(&invoice, id)
+	_ = services.PostInvoiceJournalEntry(&invoice)
 	c.JSON(http.StatusOK, invoice)
 }
 
@@ -287,6 +289,12 @@ func UpdateInvoiceStatus(c *gin.Context) {
 	if err := database.DB.Model(&invoice).Updates(updates).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update invoice status"})
 		return
+	}
+
+	database.DB.First(&invoice, id)
+	_ = services.PostInvoiceJournalEntry(&invoice)
+	if req.Status == "PAID" {
+		_ = services.PostInvoicePaymentJournalEntry(&invoice)
 	}
 
 	if userID, ok := getContextUserID(c); ok {

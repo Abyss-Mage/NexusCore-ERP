@@ -124,6 +124,28 @@ export default function GSTTaxReportsPage() {
     toast("Exporting GSTR-1 JSON...", "success");
   };
 
+  const handleDownloadGovtJSON = async () => {
+    try {
+      let url = '/reports/gst/export-govt-json';
+      const params = new URLSearchParams();
+      if (from) params.append('from', from);
+      if (to) params.append('to', to);
+      if (params.toString()) url += `?${params.toString()}`;
+
+      const res = await api.get(url);
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.data, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const filename = `GSTR1_${data?.company_gstin || 'EXPORT'}_${new Date().toISOString().slice(0, 7).replace('-', '')}.json`;
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", filename);
+      downloadAnchor.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      toast("Official GSTR-1 JSON downloaded successfully!", "success");
+    } catch (e) {
+      console.error(e);
+      toast("Failed to export GSTR-1 JSON", "error");
+    }
+  };
+
   const filteredInvoices = (data?.b2b_invoices || []).filter(inv =>
     inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
     inv.client_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -140,22 +162,28 @@ export default function GSTTaxReportsPage() {
             Tax Compliance &amp; GST Reports
           </h2>
           <p className="text-muted-foreground mt-1">
-            GSTR-1 compliant sales register, B2B invoice tables, and HSN/SAC classification exports
+            GSTR-1 compliant sales register, B2B invoice tables, and official Government JSON exports
           </p>
         </div>
 
-        <div className="flex gap-2.5">
+        <div className="flex flex-wrap gap-2.5">
+          <button
+            onClick={handleDownloadGovtJSON}
+            className="bg-primary hover:opacity-90 text-primary-foreground font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-all text-xs cursor-pointer"
+          >
+            <Download className="w-4 h-4" /> Download Official GSTR-1 JSON
+          </button>
           <button
             onClick={handleDownloadCSV}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-colors text-xs"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-colors text-xs cursor-pointer"
           >
-            <FileSpreadsheet className="w-4 h-4" /> Export GSTR-1 CSV
+            <FileSpreadsheet className="w-4 h-4" /> Export B2B CSV
           </button>
           <button
             onClick={handleDownloadJSON}
-            className="bg-secondary hover:bg-muted text-foreground font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-colors text-xs border border-border"
+            className="bg-secondary hover:bg-muted text-foreground font-semibold px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-colors text-xs border border-border cursor-pointer"
           >
-            <FileCode className="w-4 h-4 text-primary" /> Export JSON
+            <FileCode className="w-4 h-4 text-primary" /> Summary JSON
           </button>
         </div>
       </div>

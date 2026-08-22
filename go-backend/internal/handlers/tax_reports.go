@@ -130,14 +130,159 @@ func ExportGSTCSV(c *gin.Context) {
 	c.Data(http.StatusOK, "text/csv", buf.Bytes())
 }
 
-// ExportGSTJSON exports GSTR-1 JSON
+// Govt GSTR-1 Official Offline Utility Structures
+type GovtItemDetail struct {
+	Txval float64 `json:"txval"`
+	Rt    float64 `json:"rt"`
+	Iamt  float64 `json:"iamt"`
+	Camt  float64 `json:"camt"`
+	Samt  float64 `json:"samt"`
+	Csamt float64 `json:"csamt"`
+}
+
+type GovtInvoiceItem struct {
+	Num    int            `json:"num"`
+	ItmDet GovtItemDetail `json:"itm_det"`
+}
+
+type GovtInvoice struct {
+	Inum   string            `json:"inum"`
+	Idt    string            `json:"idt"`
+	Val    float64           `json:"val"`
+	Pos    string            `json:"pos"`
+	Rchrg  string            `json:"rchrg"`
+	InvTyp string            `json:"inv_typ"`
+	Itms   []GovtInvoiceItem `json:"itms"`
+}
+
+type GovtB2BRecipient struct {
+	Ctin string        `json:"ctin"`
+	Inv  []GovtInvoice `json:"inv"`
+}
+
+type GovtHSNItem struct {
+	Num   int     `json:"num"`
+	HsnSc string  `json:"hsn_sc"`
+	Desc  string  `json:"desc"`
+	Uqc   string  `json:"uqc"`
+	Qty   float64 `json:"qty"`
+	Val   float64 `json:"val"`
+	Txval float64 `json:"txval"`
+	Iamt  float64 `json:"iamt"`
+	Camt  float64 `json:"camt"`
+	Samt  float64 `json:"samt"`
+	Csamt float64 `json:"csamt"`
+}
+
+type GovtHSNTable struct {
+	Data []GovtHSNItem `json:"data"`
+}
+
+type GovtGSTR1Payload struct {
+	Gstin   string             `json:"gstin"`
+	Fp      string             `json:"fp"`      // e.g. "082026"
+	Version string             `json:"version"` // "GSTR1_V2.0"
+	B2b     []GovtB2BRecipient `json:"b2b"`
+	Hsn     GovtHSNTable       `json:"hsn"`
+}
+
+// ExportGSTR1GovtJSON generates the official Government GSTR-1 offline portal format
+func ExportGSTR1GovtJSON(c *gin.Context) {
+	summary, err := buildGSTSummary(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to compile GST summary: " + err.Error()})
+		return
+	}
+
+	now := time.Now()
+	fp := now.Format("012006") // MMYYYY e.g. 082026
+
+	// Group B2B by recipient GSTIN
+	b2bMap := make(map[string][]GovtInvoice)
+
+	for _, inv := range summary.B2BInvoices {
+		taxRate := 18.0
+		if inv.TaxableValue > 0 {
+			totTax := inv.IGSTAmount + inv.CGSTAmount + inv.SGSTAmount
+			taxRate = math.Round((totTax / inv.TaxableValue) * 100.0)
+		}
+
+		posCode := "27"
+		if len(inv.PlaceOfSupply) >= 2 && inv.PlaceOfSupply[0] >= '0' && inv.PlaceOfSupply[0] <= '9' {
+			posCode = inv.PlaceOfSupply[:2]
+		}
+
+		govtInv := GovtInvoice{
+			Inum:   inv.InvoiceNumber,
+			Idt:    inv.IssueDate,
+			Val:    inv.TotalInvoiceVal,
+			Pos:    posCode,
+			Rchrg:  "N",
+			InvTyp: "R",
+			Itms: []GovtInvoiceItem{
+				{
+					Num: 1,
+					ItmDet: GovtItemDetail{
+						Txval: inv.TaxableValue,
+						Rt:    taxRate,
+						Iamt:  inv.IGSTAmount,
+						Camt:  inv.CGSTAmount,
+						Samt:  inv.SGSTAmount,
+						Csamt: 0.0,
+					},
+				},
+			},
+		}
+
+		b2bMap[inv.ClientGSTIN] = append(b2bMap[inv.ClientGSTIN], govtInv)
+	}
+
+	var b2bList []GovtB2BRecipient
+	for gstin, invList := range b2bMap {
+		b2bList = append(b2bList, GovtB2BRecipient{
+			Ctin: gstin,
+			Inv:  invList,
+		})
+	}
+
+	var hsnList []GovtHSNItem
+	for i, h := range summary.HSNSACSummary {
+		hsnList = append(hsnList, GovtHSNItem{
+			Num:   i + 1,
+			HsnSc: h.Code,
+			Desc:  h.Description,
+			Uqc:   h.UQC,
+			Qty:   h.TotalQty,
+			Val:   h.TotalValue,
+			Txval: h.TaxableValue,
+			Iamt:  h.IGSTAmount,
+			Camt:  h.CGSTAmount,
+			Samt:  h.SGSTAmount,
+			Csamt: 0.0,
+		})
+	}
+
+	payload := GovtGSTR1Payload{
+		Gstin:   summary.CompanyGSTIN,
+		Fp:      fp,
+		Version: "GSTR1_V2.0",
+		B2b:     b2bList,
+		Hsn:     GovtHSNTable{Data: hsnList},
+	}
+
+	filename := fmt.Sprintf("GSTR1_%s_%s.json", summary.CompanyGSTIN, fp)
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	c.JSON(http.StatusOK, payload)
+}
+
+// ExportGSTJSON exports GSTR-1 JSON summary
 func ExportGSTJSON(c *gin.Context) {
 	summary, err := buildGSTSummary(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=GSTR1_Export_%s.json", time.Now().Format("20060102")))
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=GSTR1_Summary_%s.json", time.Now().Format("20060102")))
 	c.JSON(http.StatusOK, summary)
 }
 

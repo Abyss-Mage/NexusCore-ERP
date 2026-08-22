@@ -9,7 +9,7 @@ import {
     Kanban, Package, Printer, Briefcase, Code, Server, Lock, 
     Wallet, History, Settings, LogOut, Plus, User, Palette, Link2,
     Globe, FolderGit2, Calculator, Receipt, Building2, ShoppingBag, 
-    ChevronDown, Check, Sparkles, KeyRound, ShieldCheck
+    ChevronDown, Check, Sparkles, KeyRound, ShieldCheck, Scale
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/business-context";
@@ -214,6 +214,7 @@ export function Sidebar({ className }: SidebarProps) {
             <div>
               <p className="font-label-sm text-[11px] text-on-surface-variant mb-2 px-4 uppercase tracking-wider font-bold">Administration</p>
               <div className="space-y-1">
+                {canAccessFinance && <NavItem href="/reports/financials" icon={Scale} label="P&L & Balance Sheet" badge="New" />}
                 {canAccessFinance && <NavItem href="/ledger" icon={Wallet} label="Ledger" />}
                 {canAccessReports && <NavItem href="/reports/gst" icon={Receipt} label="GST & Tax Reports" />}
                 {isAdmin && <NavItem href="/activity" icon={History} label="Activity Log" />}

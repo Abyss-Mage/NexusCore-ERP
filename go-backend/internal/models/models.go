@@ -279,5 +279,9 @@ func AutoMigrateAll(db *gorm.DB) error {
 		&VaultAuditLog{},
 		&SoftwareProject{},
 		&ProjectMilestone{},
+		&Account{},
+		&JournalEntry{},
+		&JournalLine{},
+		&ExchangeRate{},
 	)
 }
